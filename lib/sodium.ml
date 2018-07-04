@@ -594,6 +594,17 @@ module Password_hash = struct
   module Bigbytes = Make(Storage.Bigbytes)
 end
 
+module Aead = struct
+  module C = C.Aead
+  let primitive = C.primitive
+
+  type 'a key = Bytes.t
+  type secret_key = secret key
+
+  let key_size      = Size_t.to_int (C.keybytes ())
+  let derive_key = Password_hash.derive_key key_size
+end
+
 module Secret_box = struct
   module C = C.Secret_box
   let primitive = C.primitive

@@ -192,6 +192,14 @@ module C(F: Cstubs.FOREIGN) = struct
            returning int)
   end
 
+  module Aead = struct
+    let primitive = "xchacha20poly1305_ietf"
+    let prefix    = "crypto_aead_"^primitive
+
+    let sz_query_type   = F.(void @-> returning size_t)
+    let keybytes        = F.foreign (prefix^"_keybytes")     sz_query_type
+  end
+
   module Secret_box = struct
     let primitive = "xsalsa20poly1305"
     let prefix    = "crypto_secretbox_"^primitive

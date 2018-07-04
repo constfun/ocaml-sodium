@@ -454,6 +454,24 @@ module Password_hash : sig
   module Bigbytes : S with type storage = bigbytes
 end
 
+
+module Aead : sig
+    type 'a key
+    type secret_key = secret key
+
+    (** [derive_key difficulty pw salt] derives a key from a human
+        generated password. Since the derivation depends on both
+        [difficulty] and [salt], it is necessary to store them alongside
+        the ciphertext. Using a constant salt is insecure because it
+        increases the effectiveness of rainbow tables. Generate the salt
+        with a function like {!Password_hash.random_salt} instead. *)
+    val derive_key      :
+        Password_hash.difficulty ->
+        Password_hash.password ->
+        Password_hash.salt ->
+        secret_key
+end
+
 module Secret_box : sig
   type 'a key
   type secret_key = secret key
