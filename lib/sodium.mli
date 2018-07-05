@@ -458,6 +458,7 @@ end
 module Aead : sig
     type 'a key
     type secret_key = secret key
+    type nonce
 
     (** [derive_key difficulty pw salt] derives a key from a human
         generated password. Since the derivation depends on both
@@ -470,6 +471,43 @@ module Aead : sig
         Password_hash.password ->
         Password_hash.salt ->
         secret_key
+
+    (** [random_nonce ()] generates a random nonce. *)
+    val random_nonce    : unit -> nonce
+
+    module type S = sig
+        type storage
+
+        (** [of_key k] converts [k] to {!storage}. The result is
+            {!key_size} bytes long. *)
+        val of_key          : secret key -> storage
+
+        (** [to_key s] converts [s] to a secret key.
+
+            @raise Size_mismatch if [s] is not {!key_size} bytes long *)
+        val to_key          : storage -> secret key
+
+        (** [of_nonce n] converts [n] to {!storage}. The result is
+            {!nonce_size} bytes long. *)
+        val of_nonce        : nonce -> storage
+
+        (** [to_nonce s] converts [s] to a nonce.
+
+            @raise Size_mismatch if [s] is not {!nonce_size} bytes long *)
+        val to_nonce        : storage -> nonce
+
+        (** [encrypt k m adata n] encrypts and authenticates a message [m] using
+            a secret key [k] and a nonce [n], and returns the resulting
+            ciphertext. *)
+        val encrypt      : secret key -> storage -> storage -> nonce -> storage
+
+        (** [decrypt k c adata n] encrypts and authenticates a message [m] using
+            a secret key [k] and a nonce [n], and returns the resulting
+            ciphertext. *)
+        val decrypt_and_verify      : secret key -> storage -> storage -> nonce -> storage
+    end
+
+    module Bytes : S with type storage = Bytes.t
 end
 
 module Secret_box : sig

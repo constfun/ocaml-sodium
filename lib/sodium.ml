@@ -600,9 +600,88 @@ module Aead = struct
 
   type 'a key = Bytes.t
   type secret_key = secret key
+  type nonce = Bytes.t
 
   let key_size      = Size_t.to_int (C.keybytes ())
+  let nonce_size    = Size_t.to_int (C.npubbytes ())
+  let atag_size    = Size_t.to_int (C.abytes ())
   let derive_key = Password_hash.derive_key key_size
+
+  let random_nonce =
+    if nonce_size > 8 then
+      fun () -> Random.Bytes.generate nonce_size
+    else
+      fun () ->
+        raise (Failure
+                 "Randomly generated nonces 8 bytes long or less are unsafe"
+        )
+
+  module type S = sig
+    type storage
+
+    val of_key          : secret key -> storage
+    val to_key          : storage -> secret key
+    val of_nonce        : nonce -> storage
+    val to_nonce        : storage -> nonce
+    val encrypt      : secret key -> storage -> storage -> nonce -> storage
+    val decrypt_and_verify      : secret key -> storage -> storage -> nonce -> storage
+  end
+
+  module Make(T: Storage.S) = struct
+    module C = C.Make(T)
+    type storage = T.t
+
+    let verify_length str len fn_name =
+      if T.length str <> len then raise (Size_mismatch fn_name)
+
+    let of_key key =
+      T.of_bytes key
+
+    let to_key str =
+      verify_length str key_size "Aead.to_key";
+      T.to_bytes str
+
+    let of_nonce nonce =
+      T.of_bytes nonce
+
+    let to_nonce str =
+      verify_length str nonce_size "Aead.to_nonce";
+      T.to_bytes str
+
+    let encrypt key message adata nonce =
+      let mlen = T.length message in
+      let ciphertext = T.create (mlen + atag_size) in
+      let clen_ptr = allocate ullong (Unsigned.ULLong.of_int 0) in
+      let ret = C.encrypt
+        (T.to_ptr ciphertext) (clen_ptr)
+        (T.to_ptr message) (T.len_ullong message)
+        (T.to_ptr adata) (T.len_ullong adata)
+        (from_voidp uchar null )
+        (Storage.Bytes.to_ptr nonce)
+        (Storage.Bytes.to_ptr key)
+      in
+      assert (ret = 0); (* always returns 0 *)
+      print_endline ("Encrypted clen " ^ (Unsigned.ULLong.to_string !@clen_ptr) ^ " allocated " ^ (string_of_int @@ T.length @@ ciphertext));
+      ciphertext
+
+    let decrypt_and_verify key ciphertext adata nonce =
+      let clen = T.length ciphertext in
+      let message = T.create (clen + atag_size) in
+      let mlen_ptr = allocate ullong (Unsigned.ULLong.of_int 0) in
+      let ret = C.decrypt
+        (T.to_ptr message) (mlen_ptr)
+        (from_voidp char null)
+        (T.to_ptr ciphertext) (T.len_ullong ciphertext)
+        (T.to_ptr adata) (T.len_ullong adata)
+        (Storage.Bytes.to_ptr nonce)
+        (Storage.Bytes.to_ptr key)
+      in
+      assert (ret = 0); (* always returns 0 *)
+      print_endline ("Decrypted mlen " ^ (Unsigned.ULLong.to_string !@mlen_ptr) ^ " allocated " ^ (string_of_int @@ T.length @@ message));
+      message
+  end
+
+  module Bytes = Make(Storage.Bytes)
 end
 
 module Secret_box = struct
