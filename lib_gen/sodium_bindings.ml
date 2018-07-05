@@ -198,6 +198,21 @@ module C(F: Cstubs.FOREIGN) = struct
 
     let sz_query_type   = F.(void @-> returning size_t)
     let keybytes        = F.foreign (prefix^"_keybytes")     sz_query_type
+    let npubbytes       = F.foreign (prefix^"_npubbytes")     sz_query_type
+    let abytes       = F.foreign (prefix^"_abytes")     sz_query_type
+
+    module Make(T: Sodium_storage.S) = struct
+      let aead_fn_ty = F.(T.ctype @-> ullong @-> (* cyphertext, clen *)
+                          T.ctype @-> ullong @-> (* message, mlen *)
+                          T.ctype @-> ullong @-> (* additional data, adlen *)
+                          ptr char @-> (* nsec, unused must be NULL *)
+                          ocaml_bytes @-> (* nonce/npub *)
+                          ocaml_bytes @-> (* key *)
+                          returning int
+                          )
+
+      let encrypt       = F.foreign (prefix^"_encrypt") aead_fn_ty
+    end
   end
 
   module Secret_box = struct
