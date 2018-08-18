@@ -202,16 +202,26 @@ module C(F: Cstubs.FOREIGN) = struct
     let abytes       = F.foreign (prefix^"_abytes")     sz_query_type
 
     module Make(T: Sodium_storage.S) = struct
-      let aead_fn_ty = F.(T.ctype @-> ullong @-> (* cyphertext, clen *)
-                          T.ctype @-> ullong @-> (* message, mlen *)
-                          T.ctype @-> ullong @-> (* additional data, adlen *)
-                          ptr char @-> (* nsec, unused must be NULL *)
-                          ocaml_bytes @-> (* nonce/npub *)
-                          ocaml_bytes @-> (* key *)
-                          returning int
-                          )
+      let encrypt       = F.(
+        foreign (prefix^"_encrypt") (
+        T.ctype @-> ptr ullong @-> (* cyphertext, clen ptr *)
+        T.ctype @-> ullong @-> (* message, mlen *)
+        T.ctype @-> ullong @-> (* additional data, adlen *)
+        ptr uchar @-> (* nsec, unused must be NULL *)
+        ocaml_bytes @-> (* nonce/npub *)
+        ocaml_bytes @-> (* key *)
+        returning int
+      ))
 
-      let encrypt       = F.foreign (prefix^"_encrypt") aead_fn_ty
+      let decrypt       = F.(foreign (prefix^"_decrypt") (
+        T.ctype @-> ptr ullong @-> (* message, mlen *)
+        ptr uchar @-> (* nsec, unused must be NULL *)
+        T.ctype @-> ullong @-> (* cyphertext, clen *)
+        T.ctype @-> ullong @-> (* additional data, adlen *)
+        ocaml_bytes @-> (* nonce/npub *)
+        ocaml_bytes @-> (* key *)
+        returning int
+      ))
     end
   end
 

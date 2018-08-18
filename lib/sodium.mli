@@ -460,6 +460,9 @@ module Aead : sig
     type secret_key = secret key
     type nonce
 
+    (** Size of nonces, in bytes. *)
+    val nonce_size      : int
+
     (** [derive_key difficulty pw salt] derives a key from a human
         generated password. Since the derivation depends on both
         [difficulty] and [salt], it is necessary to store them alongside
@@ -496,10 +499,15 @@ module Aead : sig
             @raise Size_mismatch if [s] is not {!nonce_size} bytes long *)
         val to_nonce        : storage -> nonce
 
-        (** [secret_box k m n] encrypts and authenticates a message [m] using
+        (** [encrypt k m adata n] encrypts and authenticates a message [m] using
             a secret key [k] and a nonce [n], and returns the resulting
             ciphertext. *)
         val encrypt      : secret key -> storage -> storage -> nonce -> storage
+
+        (** [decrypt k c adata n] encrypts and authenticates a message [m] using
+            a secret key [k] and a nonce [n], and returns the resulting
+            ciphertext. *)
+        val decrypt_and_verify      : secret key -> storage -> storage -> nonce -> storage
     end
 
     module Bytes : S with type storage = Bytes.t
