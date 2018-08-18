@@ -670,7 +670,7 @@ module Aead = struct
       let mlen_ptr = allocate ullong (Unsigned.ULLong.of_int 0) in
       let ret = C.decrypt
         (T.to_ptr message) (mlen_ptr)
-        (from_voidp char null)
+        (from_voidp uchar null)
         (T.to_ptr ciphertext) (T.len_ullong ciphertext)
         (T.to_ptr adata) (T.len_ullong adata)
         (Storage.Bytes.to_ptr nonce)

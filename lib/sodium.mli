@@ -460,6 +460,9 @@ module Aead : sig
     type secret_key = secret key
     type nonce
 
+    (** Size of nonces, in bytes. *)
+    val nonce_size      : int
+
     (** [derive_key difficulty pw salt] derives a key from a human
         generated password. Since the derivation depends on both
         [difficulty] and [salt], it is necessary to store them alongside

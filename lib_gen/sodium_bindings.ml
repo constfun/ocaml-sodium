@@ -215,7 +215,7 @@ module C(F: Cstubs.FOREIGN) = struct
 
       let decrypt       = F.(foreign (prefix^"_decrypt") (
         T.ctype @-> ptr ullong @-> (* message, mlen *)
-        ptr char @-> (* nsec, unused must be NULL *)
+        ptr uchar @-> (* nsec, unused must be NULL *)
         T.ctype @-> ullong @-> (* cyphertext, clen *)
         T.ctype @-> ullong @-> (* additional data, adlen *)
         ocaml_bytes @-> (* nonce/npub *)
