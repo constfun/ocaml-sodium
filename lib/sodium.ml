@@ -677,6 +677,7 @@ module Aead = struct
       in
       assert (ret = 0); (* always returns 0 *)
       print_endline ("Decrypted mlen " ^ (Unsigned.ULLong.to_string !@mlen_ptr) ^ " allocated " ^ (string_of_int @@ T.length @@ message));
+      print_endline ("Message len " ^ (T.length message));
       T.sub message 0 (Unsigned.ULLong.to_int !@mlen_ptr)
   end
 
