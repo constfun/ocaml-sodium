@@ -676,12 +676,7 @@ module Aead = struct
         (Storage.Bytes.to_ptr key)
       in
       assert (ret = 0); (* always returns 0 *)
-      print_endline ("Decrypted mlen " ^ (Unsigned.ULLong.to_int !@mlen_ptr |> string_of_int) ^ " allocated " ^ (string_of_int @@ T.length @@ message));
-      print_endline ("Message len " ^ (T.length message |> string_of_int));
-      let len = Unsigned.ULLong.to_int !@mlen_ptr in
-      let res = T.create len in
-      T.blit message 0 res 0 len;
-      res
+      T.sub message 0 (Unsigned.ULLong.to_int !@mlen_ptr)
   end
 
   module Bytes = Make(Storage.Bytes)
