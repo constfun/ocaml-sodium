@@ -657,8 +657,8 @@ module Aead = struct
         (T.to_ptr message) (T.len_ullong message)
         (T.to_ptr adata) (T.len_ullong adata)
         (from_voidp uchar null )
-        (T.to_ptr nonce)
-        (T.to_ptr key)
+        (Storage.Bytes.to_ptr nonce)
+        (Storage.Bytes.to_ptr key)
       in
       assert (ret = 0); (* always returns 0 *)
       ciphertext
@@ -672,8 +672,8 @@ module Aead = struct
         (from_voidp uchar null)
         (T.to_ptr ciphertext) (T.len_ullong ciphertext)
         (T.to_ptr adata) (T.len_ullong adata)
-        (T.to_ptr nonce)
-        (T.to_ptr key)
+        (Storage.Bytes.to_ptr nonce)
+        (Storage.Bytes.to_ptr key)
       in
       assert (ret = 0); (* always returns 0 *)
       print_endline ("Decrypted mlen " ^ (Unsigned.ULLong.to_int !@mlen_ptr |> string_of_int) ^ " allocated " ^ (string_of_int @@ T.length @@ message));
